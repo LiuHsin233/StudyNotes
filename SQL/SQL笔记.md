@@ -12,4 +12,16 @@
 SQL	结构化查询语言,用于与数据库沟通的语言
 
 ## SQL语句
-> 
+> SQL关键字不区分大小写,写一行和分成多行也没有区别
+
+1. SELECT
+```sql
+-- 检索单个列,直接列出所需要的列名
+SELECT name FROM Actors;
+
+-- 检索多个列,使用逗号隔开
+SELECT name,id FROM Actors;
+
+-- 检索所有列  使用* 表示返回所有列
+SELECT * FROM Actors;
+```
