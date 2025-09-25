@@ -1,6 +1,5 @@
-[toc]
-# 数据库
-## 基础术语
+# 1. 数据库
+## 1.1. 基础术语
 数据库(database)  保存有组织数据的容器
 数据库管理系统(DBMS) 操作数据库的软件
 表(table) 某种特定类型数据的结构化清单
@@ -11,10 +10,10 @@
 主键(primary key) 能够唯一标识表中每一行的一列(或者一组列)
 SQL	结构化查询语言,用于与数据库沟通的语言
 
-## SQL语句
+## 1.2. SQL语句
 > SQL关键字不区分大小写,写一行和分成多行也没有区别
 
-### SELECT
+### 1.2.1. SELECT
 
 ```sql
 -- 检索单个列,直接列出所需要的列名
@@ -27,7 +26,7 @@ SELECT name,id FROM Actors;
 SELECT * FROM Actors;
 ```
 
-#### DISTINCT
+#### 1.2.1.1. DISTINCT
 
 ```sql
 
@@ -41,7 +40,7 @@ SELECT DISTINCT serverId FROM Actors;
 SELECT DISTINCT serverId,groupId FROM Actors;
 
 ```
-#### LIMIT
+#### 1.2.1.2. LIMIT
 
 ```sql
 
@@ -64,7 +63,7 @@ SELECT name FROM Actors LIMIT 5;
 
 -- 不同DBMS支持的语法可能会有些差异,不过大部分基础语法都是支持的.
 ```
-#### ORDER BY和DESC
+#### 1.2.1.3. ORDER BY和DESC
 
 ```sql
 
@@ -83,7 +82,7 @@ SELECT id,name,level FROM Actors ORDER BY serverId;
 SELECT id,name,level FROM Actors ORDER BY level DESC;
 ```
 
-#### WHERE子句
+#### 1.2.1.4. WHERE子句
 
 ```sql
 -- 使用WHERE子句筛选出符合要求的记录
@@ -109,7 +108,7 @@ SELECT id,name,level FROM Actors WHERE level > 100 ORDER BY id;
 
 > 以上操作符并非所有BDMS都支持,具体参照对应文档
 
-##### AND 和 OR
+##### 1.2.1.4.1. AND 和 OR
 
 > AND和OR用于连接两个条件,其中AND需要同时满足AND左右的条件,OR只需左右条件满足其一即可(也就是左边条件满足就不计算右边条件)
 >
@@ -122,7 +121,7 @@ SELECT id,name,level FROM Actors WHERE level > 100 ORDER BY id;
 SELECT id,name,level FROM Actors WHERE (level > 100 and level <= 200) or (level > 300 and level < 400);
 ```
 
-##### IN 和 NOT
+##### 1.2.1.4.2. IN 和 NOT
 
 > IN 用于指定要匹配值清单,功能和OR相当,一般比一组OR操作符执行的更快
 
@@ -144,7 +143,7 @@ SELECT id,name,level FROM Actors WHERE serverid NOT IN(9990,9993,9994);
 
 ```
 
-##### LIKE
+##### 1.2.1.4.3. LIKE
 
 | 通配符 | 作用                           | 说明                                            |
 | ------ | ------------------------------ | ----------------------------------------------- |
