@@ -192,10 +192,10 @@ SELECT id,name,level FROM Actors WHERE name like '[^JM]%';
  FROM OrderItems
  WHERE order_num = 20008;
  
- --[[
+ /*
      这里prod_id,quantity,item_price都是表中的列
      quantity*item_price为新的计算列,或者说导出列,给它起了一个别名叫expanded_price
- ]]
+*/
  
 ```
 ##### GROUP BY子句 和 HAVING子句
@@ -251,7 +251,7 @@ SELECT AVG(prod_price) AS avg_price
 FROM Products
 WHERE vend_id = 'DLL01';
 
--- 返回有电子右键地址的客户数量
+-- 返回有电子邮件地址的客户数量
 -- COUNT会对特定列中具有值的行进行计数,忽略NULL值
 -- 如果是想计算表中的行数,可以使用COUNT(*)
 SELECT COUNT(cust_email) AS num_cust
