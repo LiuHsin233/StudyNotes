@@ -9,6 +9,13 @@
         - [1.2.1.4.1. AND 和 OR](#12141-and-和-or)
         - [1.2.1.4.2. IN 和 NOT](#12142-in-和-not)
         - [1.2.1.4.3. LIKE](#12143-like)
+        - [AS 和 算术运算](#as-和-算术运算)
+        - [GROUP BY子句 和 HAVING子句](#group-by子句-和-having子句)
+  - [1.3 函数](#13-函数)
+    - [文本处理函数](#文本处理函数)
+    - [日期和时间处理函数](#日期和时间处理函数)
+    - [数值处理函数](#数值处理函数)
+    - [聚集函数](#聚集函数)
 
 # 1. 数据库
 ## 1.1. 基础术语
@@ -157,16 +164,127 @@ SELECT id,name,level FROM Actors WHERE serverid NOT IN(9990,9993,9994);
 
 ##### 1.2.1.4.3. LIKE
 
-| 通配符 | 作用                           | 说明                                            |
-| ------ | ------------------------------ | ----------------------------------------------- |
-| %      | 匹配任意长度的字符串(包括空串) | 'A%Z'可以匹配'AZ','ABZ','ABBZ',                 |
-| _      | 匹配任意一个字符               | 'A_Z'可以匹配'ABZ','ACZ'但是不能匹配'AZ','ABBZ' |
-|        |                                |                                                 |
-|        |                                |                                                 |
-|        |                                |                                                 |
-|        |                                |                                                 |
-|        |                                |                                                 |
-|        |                                |                                                 |
-|        |                                |                                                 |
-|        |                                |                                                 |
+| 通配符 | 作用                           | 说明                                                                                      |
+| ------ | ------------------------------ | ----------------------------------------------------------------------------------------- |
+| %      | 匹配任意长度的字符串(包括空串) | 'A%Z'可以匹配'AZ','ABZ','ABBZ',                                                           |
+| _      | 匹配任意一个字符               | 'A_Z'可以匹配'ABZ','ACZ'但是不能匹配'AZ','ABBZ'                                           |
+| []     | 匹配第一个字符                 | '[JM]%'匹配以J或者M开头的字符串,[JM]不带%就只能匹配单个的J或者M;使用^来否定中括号中的内容 |
 
+```sql
+-- 查找名字为Jxxk的所有玩家信息
+SELECT id,name,level FROM Actors WHERE name like 'J%k';
+
+
+-- 查找名字不以JM开头的所有玩家信息
+SELECT id,name,level FROM Actors WHERE name like '[^JM]%';
+```
+
+##### AS 和 算术运算
+
+> AS 用于起别名,比如可以给一个新的计算列(本身不存在的列)起别名
+
+```sql
+-- 计算订单价格
+ SELECT prod_id,
+ quantity,
+ item_price,
+ quantity*item_price AS expanded_price
+ FROM OrderItems
+ WHERE order_num = 20008;
+ 
+ --[[
+     这里prod_id,quantity,item_price都是表中的列
+     quantity*item_price为新的计算列,或者说导出列,给它起了一个别名叫expanded_price
+ ]]
+ 
+```
+##### GROUP BY子句 和 HAVING子句
+> GROUP BY 用于分组
+```sql
+-- 按照供货商id进行分组并且计算每组的商品数量
+SELECT vend_id, COUNT(*) AS num_prods
+FROM Products
+GROUP BY vend_id;
+```
+
+## 1.3 函数
+### 文本处理函数
+| 函数    | 说明                 |
+| ------- | -------------------- |
+| LEFT()  | 返回字符串左边的字符 |
+| RIGHT() | 返回字符串右边的字符 |
+| LEN()   | 返回字符串的长度     |
+| LOWER() | 将字符串转换成小写   |
+| UPPER() | 将字符串转换成大写   |
+| LTRIM() | 去掉字符串左边的空格 |
+| RTRIM() | 去掉字符串右边的空格 |
+
+### 日期和时间处理函数
+> 移植性很差,不同的DBMS有不同的处理方式
+
+### 数值处理函数
+| 函数   | 说明               |
+| ------ | ------------------ |
+| ABS()  | 返回一个数的绝对值 |
+| EXP()  | 返回一个数的指数值 |
+| SQRT() | 返回一个数的平方根 |
+| SIN()  | 返回一个数的正弦值 |
+| COS()  | 返回一个数的余弦值 |
+| TAN()  | 返回一个数的正切值 |
+| PI()   | 返回圆周率         |
+
+### 聚集函数
+| 函数    | 说明             |
+| ------- | ---------------- |
+| AVG()   | 返回某列的平均值 |
+| COUNT() | 返回某列的行数   |
+| MAX()   | 返回某列的最大值 |
+| MIN()   | 返回某列的最小值 |
+| SUM()   | 返回某列之和     |
+
+```sql
+
+-- 返回特定供应商商品的平均价格
+-- AVG只能用于单个列,如果想计算多个列的平均值,那么使用多个AVG函数
+-- AVG会忽略值为NULL的行
+SELECT AVG(prod_price) AS avg_price
+FROM Products
+WHERE vend_id = 'DLL01';
+
+-- 返回有电子右键地址的客户数量
+-- COUNT会对特定列中具有值的行进行计数,忽略NULL值
+-- 如果是想计算表中的行数,可以使用COUNT(*)
+SELECT COUNT(cust_email) AS num_cust
+FROM Customers;
+
+-- 返回最便宜的商品价格
+-- MAX和MIN都会忽略列值为NULL的行
+SELECT MIN(prod_price) AS min_price
+FROM Products;
+
+-- 计算商品总价格
+-- SUM也会忽略列值为NULL的行
+-- 可以使用运算符在多个列上进行计算
+SELECT SUM(item_price*quantity) AS
+total_price
+FROM OrderItems
+WHERE order_num = 20005;
+
+-- 如果是需要在计算之前去重,那么使用DISTINCT
+-- 下面在计算平均价格的时候会去除重复的价格
+-- DISTINCT可以搭配AVG,COUNT,SUM(MIN和MAX也可以用但是无意义)
+-- DISTINCT 只能搭配单列,不能用于表达式,比如上面的SUM(item_price*quantity)
+-- DISTINCT 不能搭配COUNT(*)
+SELECT AVG(DISTINCT prod_price) AS avg_price
+FROM Products
+WHERE vend_id = 'DLL01';
+
+-- 聚集函数可以任意组合,其中为了区分以及使用方便,最好使用别名
+-- 别名不建议使用表中的已存在的列名
+SELECT  COUNT(*) AS num_items,
+        MIN(prod_price) AS price_min,
+        MAX(prod_price) AS price_max,
+        AVG(prod_price) AS price_avg
+FROM Products;  
+
+```
