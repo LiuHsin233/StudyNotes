@@ -4,18 +4,20 @@
     - [1.2.1. SELECT](#121-select)
       - [1.2.1.1. DISTINCT](#1211-distinct)
       - [1.2.1.2. LIMIT](#1212-limit)
-      - [1.2.1.3. ORDER BY和DESC](#1213-order-by和desc)
-      - [1.2.1.4. WHERE子句](#1214-where子句)
-        - [1.2.1.4.1. AND 和 OR](#12141-and-和-or)
-        - [1.2.1.4.2. IN 和 NOT](#12142-in-和-not)
-        - [1.2.1.4.3. LIKE](#12143-like)
-        - [AS 和 算术运算](#as-和-算术运算)
-        - [GROUP BY子句 和 HAVING子句](#group-by子句-和-having子句)
-  - [1.3 函数](#13-函数)
-    - [文本处理函数](#文本处理函数)
-    - [日期和时间处理函数](#日期和时间处理函数)
-    - [数值处理函数](#数值处理函数)
-    - [聚集函数](#聚集函数)
+    - [1.2.2. ORDER BY子句 和 DESC](#122-order-by子句-和-desc)
+    - [1.2.3. WHERE子句](#123-where子句)
+        - [1.2.3.0.1. AND 和 OR](#12301-and-和-or)
+        - [1.2.3.0.2. IN 和 NOT](#12302-in-和-not)
+        - [1.2.3.0.3. LIKE](#12303-like)
+        - [1.2.3.0.4. AS 和 算术运算](#12304-as-和-算术运算)
+    - [1.2.4. GROUP BY子句 和 HAVING子句](#124-group-by子句-和-having子句)
+    - [1.2.5. SELECT 子句的顺序](#125-select-子句的顺序)
+  - [1.3. 函数](#13-函数)
+    - [1.3.1. 文本处理函数](#131-文本处理函数)
+    - [1.3.2. 日期和时间处理函数](#132-日期和时间处理函数)
+    - [1.3.3. 数值处理函数](#133-数值处理函数)
+    - [1.3.4. 聚集函数](#134-聚集函数)
+  - [子查询](#子查询)
 
 # 1. 数据库
 ## 1.1. 基础术语
@@ -82,7 +84,7 @@ SELECT name FROM Actors LIMIT 5;
 
 -- 不同DBMS支持的语法可能会有些差异,不过大部分基础语法都是支持的.
 ```
-#### 1.2.1.3. ORDER BY和DESC
+### 1.2.2. ORDER BY子句 和 DESC
 
 ```sql
 
@@ -101,7 +103,7 @@ SELECT id,name,level FROM Actors ORDER BY serverId;
 SELECT id,name,level FROM Actors ORDER BY level DESC;
 ```
 
-#### 1.2.1.4. WHERE子句
+### 1.2.3. WHERE子句
 
 ```sql
 -- 使用WHERE子句筛选出符合要求的记录
@@ -127,7 +129,7 @@ SELECT id,name,level FROM Actors WHERE level > 100 ORDER BY id;
 
 > 以上操作符并非所有BDMS都支持,具体参照对应文档
 
-##### 1.2.1.4.1. AND 和 OR
+##### 1.2.3.0.1. AND 和 OR
 
 > AND和OR用于连接两个条件,其中AND需要同时满足AND左右的条件,OR只需左右条件满足其一即可(也就是左边条件满足就不计算右边条件)
 >
@@ -140,7 +142,7 @@ SELECT id,name,level FROM Actors WHERE level > 100 ORDER BY id;
 SELECT id,name,level FROM Actors WHERE (level > 100 and level <= 200) or (level > 300 and level < 400);
 ```
 
-##### 1.2.1.4.2. IN 和 NOT
+##### 1.2.3.0.2. IN 和 NOT
 
 > IN 用于指定要匹配值清单,功能和OR相当,一般比一组OR操作符执行的更快
 
@@ -162,7 +164,7 @@ SELECT id,name,level FROM Actors WHERE serverid NOT IN(9990,9993,9994);
 
 ```
 
-##### 1.2.1.4.3. LIKE
+##### 1.2.3.0.3. LIKE
 
 | 通配符 | 作用                           | 说明                                                                                      |
 | ------ | ------------------------------ | ----------------------------------------------------------------------------------------- |
@@ -179,7 +181,7 @@ SELECT id,name,level FROM Actors WHERE name like 'J%k';
 SELECT id,name,level FROM Actors WHERE name like '[^JM]%';
 ```
 
-##### AS 和 算术运算
+##### 1.2.3.0.4. AS 和 算术运算
 
 > AS 用于起别名,比如可以给一个新的计算列(本身不存在的列)起别名
 
@@ -198,17 +200,65 @@ SELECT id,name,level FROM Actors WHERE name like '[^JM]%';
 */
  
 ```
-##### GROUP BY子句 和 HAVING子句
+### 1.2.4. GROUP BY子句 和 HAVING子句
 > GROUP BY 用于分组
 ```sql
 -- 按照供货商id进行分组并且计算每组的商品数量
 SELECT vend_id, COUNT(*) AS num_prods
 FROM Products
 GROUP BY vend_id;
+
+-- GROUP BY可以包含任意数目的列,来进行更细致的分组
+-- 如果分组列中包含NULL值,那么会单独的分为一组
+
+
+-- HAVING可以用于过滤分组
+-- HAVING使用方式上和WHERE类似,区别在于WHERE只能用于过滤行,但是HAVING过滤分组
+-- 在没有分组的情况下(不使用GROUP BY),HAVING和WHERE处理方式是一样的
+-- 使用上HAVING应该搭配GROUP BY,WHERE则用于一般的行级过滤
+SELECT * FROM actors HAVING serverId = 9992; -- 这里等价WHERE
+
+-- 这里用HAVING过滤两个以上订单的用户
+SELECT cust_id, COUNT(*) AS orders
+FROM Orders
+GROUP BY cust_id
+HAVING COUNT(*) >= 2;
+
+-- 具有两个以上价格大于4商品的供应商 同时使用HAVING和WHERE
+SELECT vend_id, COUNT(*) AS num_prods
+FROM Products
+WHERE prod_price >= 4
+GROUP BY vend_id
+HAVING COUNT(*) >= 2;
+
+-- 在使用GROUP BY分组的时候,最好也给出ORDER BY进行数据排序(GROUP BY分组后的数据未必是有序的)
+
+```
+### 1.2.5. SELECT 子句的顺序
+| 子句     | 说明                 | 是否必须使用             |
+| -------- | -------------------- | ------------------------ |
+| SELECT   | 要返回的列或者表达式 | 是                       |
+| FROM     | 从中检索数据的表     | 仅在从表选择数据时使用   |
+| WHERE    | 行级过滤             | 否                       |
+| GROUP BY | 分组说明             | 仅在按组计算聚集时候使用 |
+| HAVING   | 组级过滤             | 否                       |
+| ORDER BY | 输出排序顺序         | 否                       |
+```sql
+
+-- SELECT语句的执行顺序
+-- 1. FROM  确定数据从哪里开始
+-- 2. WHERE 对数据进行初步过滤
+-- 3. GROUP BY 将满足条件的数据进行分组
+-- 4. HAVING  对分组后的结果进行过滤
+-- 5. SELECT 选择需要返回的列,计算表达式
+-- 6. DISTNCT 移除重复的行
+-- 7. ORDER BY 对最终结果进行排序
+-- 8. LIMIT 限制返回查询的结果行数(如果有)
+
 ```
 
-## 1.3 函数
-### 文本处理函数
+## 1.3. 函数
+### 1.3.1. 文本处理函数
 | 函数    | 说明                 |
 | ------- | -------------------- |
 | LEFT()  | 返回字符串左边的字符 |
@@ -219,10 +269,10 @@ GROUP BY vend_id;
 | LTRIM() | 去掉字符串左边的空格 |
 | RTRIM() | 去掉字符串右边的空格 |
 
-### 日期和时间处理函数
+### 1.3.2. 日期和时间处理函数
 > 移植性很差,不同的DBMS有不同的处理方式
 
-### 数值处理函数
+### 1.3.3. 数值处理函数
 | 函数   | 说明               |
 | ------ | ------------------ |
 | ABS()  | 返回一个数的绝对值 |
@@ -233,7 +283,7 @@ GROUP BY vend_id;
 | TAN()  | 返回一个数的正切值 |
 | PI()   | 返回圆周率         |
 
-### 聚集函数
+### 1.3.4. 聚集函数
 | 函数    | 说明             |
 | ------- | ---------------- |
 | AVG()   | 返回某列的平均值 |
@@ -286,5 +336,28 @@ SELECT  COUNT(*) AS num_items,
         MAX(prod_price) AS price_max,
         AVG(prod_price) AS price_avg
 FROM Products;  
+
+```
+
+## 子查询
+> 即为嵌套其他查询中的查询
+> 作为子查询的SELECT语句只能查询单个列
+
+```sql
+-- 查找王老师所带班级(班主任=王老师)的学生信息
+-- 表class 记录班级信息 (比如班级id 班主任等)
+-- 表students 记录每个学生的信息(比如学号 姓名 班级等等)
+-- 由于students表中没有记录班主任信息,所以需要先去class表中找到对应的班级,然后返回students表查找学生信息
+
+-- 方式1
+SELECT classId FROM class WHERE head_teacher = '王老师';
+-- 通过上面语句可以搜到王老师所带的所有班级id 这里假设结果是201,405
+-- 那么可以继续用班级id去搜索学生的信息
+SELECT * FROM students WHERE classId IN(201,405);
+
+-- 方式2 子查询 将方式1中查找班级id的查询嵌套到第二句中
+SELECT * FROM students WHERE classId IN(SELECT classId FROM class WHERE head_teacher = '王老师');
+
+
 
 ```
